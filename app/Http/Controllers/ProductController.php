@@ -109,4 +109,13 @@ class ProductController extends Controller
 
         return redirect()->route('products.index')->with('success', 'Product deleted successfully.');
     }
+
+    public function userDashboard()
+    {
+        $products = Product::with('category')->latest()->take(6)->get();
+        return Inertia::render('dashboard', [
+            'products' => $products,
+        ]);
+    }
+
 }
