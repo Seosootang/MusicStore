@@ -2,6 +2,7 @@ import { Button } from '@/components/ui/button';
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
 import { Head, usePage } from '@inertiajs/react';
+import { Link } from '@inertiajs/react';
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
@@ -147,8 +148,8 @@ export default function Dashboard() {
                                     <h3 className="line-clamp-2 text-lg font-semibold text-gray-900">{product.title}</h3>
                                     <div className="mt-4 flex items-center justify-between">
                                         <p className="text-xl font-bold text-gray-900">Rp {Number(product.price).toLocaleString('id-ID')}</p>
-                                        <Button size="sm" className="bg-slate-900 px-4 hover:bg-slate-800">
-                                            View Details
+                                        <Button size="sm" className="bg-slate-900 px-4 hover:bg-slate-800" asChild>
+                                            <Link href={`/product/${product.id}`}>View Details</Link>
                                         </Button>
                                     </div>
                                 </div>

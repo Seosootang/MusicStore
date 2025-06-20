@@ -118,4 +118,16 @@ class ProductController extends Controller
         ]);
     }
 
+    public function adminDashboard()
+    {
+        $productCount = Product::count();
+        $categoryCount = Category::count();
+
+        return Inertia::render('admin/dashboard', [
+            'productCount' => $productCount,
+            'categoryCount' => $categoryCount,
+        ]);
+    }
+    
+
 }
