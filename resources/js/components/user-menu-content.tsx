@@ -3,7 +3,7 @@ import { UserInfo } from '@/components/user-info';
 import { useMobileNavigation } from '@/hooks/use-mobile-navigation';
 import { type User } from '@/types';
 import { Link, router } from '@inertiajs/react';
-import { LogOut, Settings } from 'lucide-react';
+import { History, LogOut, Settings } from 'lucide-react';
 
 interface UserMenuContentProps {
     user: User;
@@ -35,13 +35,13 @@ export function UserMenuContent({ user }: UserMenuContentProps) {
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
             <DropdownMenuGroup>
-                {user.role !== 'admin' &&(
-                <DropdownMenuItem asChild>
-                    <Link className="block w-full" href={route('invoice.index')} as="button" prefetch onClick={cleanup}>
-                        <Settings className="mr-2" />
-                        Riwayat Pembelian
-                    </Link>
-                </DropdownMenuItem>
+                {user.role !== 'admin' && (
+                    <DropdownMenuItem asChild>
+                        <Link className="block w-full" href={route('invoice.index')} as="button" prefetch onClick={cleanup}>
+                            <History className="mr-2" />
+                            Purchase History
+                        </Link>
+                    </DropdownMenuItem>
                 )}
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
