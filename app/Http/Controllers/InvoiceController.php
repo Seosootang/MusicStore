@@ -25,8 +25,34 @@ class InvoiceController extends Controller
     public function index() 
     {
         $userId = Auth::id();
-        $invoies = Invoice::with('items', 'items.product')->where('user_id', $userId)->orderBy('created_at', 'desc')->get();
+        $invoices = Invoice::with('items', 'items.product')->where('user_id', $userId)->orderBy('created_at', 'desc')->get();
         return Inertia::render('invoice', compact('invoices'));
+    }
+
+    public function callbackXendit(Request $request)
+    {
+        $getToken = $request->header('x-callback-token');
+        $callbackToken = config('xendit.CALLBACK_TOKEN');
+
+        if ($getToken !== $callbackToken) {
+            return response()->json(['message' => 'Unauthorized'], 401);
+        }
+
+        //cek eksternal id dari xendit dengan external id di database
+        $invoice = Invoice::where('invoice_code', $request->external_id)->first();
+        if (!$invoice) {
+            return response()->json(['message' => 'Invoice not found'], 404);
+        }
+        $date = date_create($request->paid_at);
+        $paid_at = date_format($date, 'Y-m-d H:i:s');
+        $invoice->update([
+            'paid_at' => $paid_at,
+            'status' => ($request->status == 'PAID' || $request->status == 'SETTLED') ? 'paid' : 'failed',
+            'payment_methode' => $request->payment_method,
+            'payment_channel' => $request->payment_channel,
+        ]);
+
+        return response()-> json(['message' => 'Success'], 200);
     }
 
     public function store() 
@@ -112,6 +138,6 @@ class InvoiceController extends Controller
     public function show($id) 
     {
         $invoice = Invoice::with('items', 'items.product')->findOrFail($id);
-        return Inertia::render('invoice', compact('invoice'));
+        return Inertia::render('invoice-detail', compact('invoice'));
     }
 }

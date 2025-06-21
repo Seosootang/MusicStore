@@ -34,6 +34,17 @@ export function UserMenuContent({ user }: UserMenuContentProps) {
                 </DropdownMenuItem>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
+            <DropdownMenuGroup>
+                {user.role !== 'admin' &&(
+                <DropdownMenuItem asChild>
+                    <Link className="block w-full" href={route('invoice.index')} as="button" prefetch onClick={cleanup}>
+                        <Settings className="mr-2" />
+                        Riwayat Pembelian
+                    </Link>
+                </DropdownMenuItem>
+                )}
+            </DropdownMenuGroup>
+            <DropdownMenuSeparator />
             <DropdownMenuItem asChild>
                 <Link className="block w-full" method="post" href={route('logout')} as="button" onClick={handleLogout}>
                     <LogOut className="mr-2" />

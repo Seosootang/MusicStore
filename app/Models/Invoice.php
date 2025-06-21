@@ -12,7 +12,7 @@ class Invoice extends Model
         return $this->belongsTo(User::class);
     }
 
-    public function cart() {
+    public function items() {
         return $this->hasMany(InvoiceProduct::class);
     }
 }
