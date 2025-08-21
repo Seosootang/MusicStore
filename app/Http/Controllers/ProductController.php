@@ -112,9 +112,11 @@ class ProductController extends Controller
 
     public function userDashboard()
     {
-        $products = Product::with('category')->latest()->take(6)->get();
+        $products = Product::with('category')->latest()->get();
+        $categories = Category::all();
         return Inertia::render('dashboard', [
             'products' => $products,
+            'categories' => $categories,
         ]);
     }
 
