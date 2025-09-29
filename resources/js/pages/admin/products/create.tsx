@@ -1,13 +1,12 @@
 import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { Select } from '@/components/ui/select';
 import AppLayout from '@/layouts/app-layout';
 import { parseRupiah, rupiahFormatter } from '@/lib/utils';
 import { BreadcrumbItem } from '@/types';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Head, router } from '@inertiajs/react';
-import { SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 
@@ -27,7 +26,8 @@ const breadcrumbs: BreadcrumbItem[] = [
 ];
 
 const formSchema = z.object({
-    category_id: z.number(),
+    categories: z.array(z.number()).min(1, { message: 'Select at least one category.' }),
+    badge: z.enum(['new', 'sale', 'bestseller', 'limited'], { required_error: 'Badge is required' }),
     image: z.any(),
     title: z.string().min(1, {
         message: 'Title is required.',
@@ -43,10 +43,13 @@ export default function CreateProduct({ categories }: { categories: { id: number
     const form = useForm<z.infer<typeof formSchema>>({
         resolver: zodResolver(formSchema),
         defaultValues: {
-            image: 'null',
+            image: null,
             title: '',
             description: '',
             price: 0,
+            stock: 0,
+            categories: [],
+            badge: 'new',
         },
     });
 
@@ -84,33 +87,60 @@ export default function CreateProduct({ categories }: { categories: { id: number
                                     </FormItem>
                                 )}
                             />
+
                             <FormField
                                 control={form.control}
-                                name="category_id"
+                                name="categories"
                                 render={({ field }) => (
                                     <FormItem>
-                                        <FormLabel>Category Name</FormLabel>
-                                        <Select
-                                            onValueChange={(val) => field.onChange(Number(val))}
-                                            value={field.value ? field.value.toString() : ''}
-                                        >
-                                            <FormControl>
-                                                <SelectTrigger>
-                                                    <SelectValue placeholder="Select a Category" />
-                                                </SelectTrigger>
-                                            </FormControl>
-                                            <SelectContent>
-                                                {categories.map((category) => (
-                                                    <SelectItem key={category.id} value={category.id.toString()}>
-                                                        {category.name}
-                                                    </SelectItem>
-                                                ))}
-                                            </SelectContent>
-                                        </Select>
+                                        <FormLabel>Categories</FormLabel>
+                                        <div className="grid gap-2">
+                                            {categories.map((category) => {
+                                                const checked = (field.value || []).includes(category.id);
+                                                return (
+                                                    <label key={category.id} className="flex items-center gap-2">
+                                                        <Checkbox
+                                                            checked={checked}
+                                                            onCheckedChange={(isChecked) => {
+                                                                const set = new Set(field.value || ([] as number[]));
+                                                                if (isChecked) set.add(category.id);
+                                                                else set.delete(category.id);
+                                                                field.onChange(Array.from(set));
+                                                            }}
+                                                        />
+                                                        <span>{category.name}</span>
+                                                    </label>
+                                                );
+                                            })}
+                                        </div>
                                         <FormMessage />
                                     </FormItem>
                                 )}
                             />
+
+                            <FormField
+                                control={form.control}
+                                name="badge"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Badge</FormLabel>
+                                        <FormControl>
+                                            <select
+                                                className="rounded-md border p-2"
+                                                value={field.value}
+                                                onChange={(e) => field.onChange(e.target.value as 'new' | 'sale' | 'bestseller' | 'limited')}
+                                            >
+                                                <option value="new">New</option>
+                                                <option value="sale">Sale</option>
+                                                <option value="bestseller">Bestseller</option>
+                                                <option value="limited">Limited</option>
+                                            </select>
+                                        </FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+
                             <FormField
                                 control={form.control}
                                 name="title"

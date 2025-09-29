@@ -6,12 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class Cart extends Model
 {
-    protected $fillable = [
-        'user_id',
-        'product_id',
-        'quantity',
-        'status',
-    ];
+    protected $guarded = ['created_at', 'updated_at'];
 
     public function user() {
         return $this->belongsTo(User::class);

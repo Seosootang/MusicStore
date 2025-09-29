@@ -10,7 +10,7 @@ use App\Models\Product;
 class HomeController extends Controller
 {
     public function dashboard() {
-        $products = Product::with('category')->latest()->take(6)->get();
+        $products = Product::with(['category', 'categories'])->latest()->take(6)->get();
         $categories = Category::all();
         return Inertia::render('dashboard', [
             'products' => $products,
@@ -19,7 +19,7 @@ class HomeController extends Controller
     }
 
     public function detailProduct($id) {
-        $product = Product::with('category')->findOrFail($id);
+        $product = Product::with(['category', 'categories'])->findOrFail($id);
         return Inertia::render('product-detail', [
             'product' => $product,
         ]);

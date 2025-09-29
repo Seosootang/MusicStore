@@ -18,6 +18,7 @@ return new class extends Migration
             $table->string('title');
             $table->text('description');
             $table->bigInteger('price');
+            $table->enum('badge', ['new', 'sale', 'bestseller', 'limited'])->nullable();
             $table->integer('stock')->default(0);
             $table->timestamps();
         });

@@ -16,7 +16,7 @@ class ProductController extends Controller
 
     public function index() 
     {
-        $products = Product::with('category')->latest()->get();
+        $products = Product::with('categories')->latest()->get();
         $categories = Category::all();
         return Inertia::render('admin/products/index', [
             'products' => $products,
@@ -33,9 +33,11 @@ class ProductController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'category_id' => 'required|exists:categories,id',
+            'categories' => 'required|array|min:1',
+            'categories.*' => 'exists:categories,id',
             'image' => 'required|image|mimes:jpg,jpeg,png|max:2048',
             'title' => 'required|string|max:255',
+            'badge' => 'required|in:new,sale,bestseller,limited',
             'description' => 'required|string',
             'price' => 'required|numeric|min:0',
             'stock' => 'required|integer|min:0',
@@ -44,17 +46,26 @@ class ProductController extends Controller
         $image = $request->file('image');
         $imagePath = $image->store('products', 'public');
 
-        $data = $request->all();
-        $data['image'] = $imagePath;
-        
-        Product::create($data);
+        $firstCategoryId = collect($request->input('categories'))->map(fn($v) => (int)$v)->first();
+
+        $product = Product::create([
+            'category_id' => $firstCategoryId, // legacy column compatibility
+            'image' => $imagePath,
+            'title' => $request->input('title'),
+            'badge' => $request->input('badge'),
+            'description' => $request->input('description'),
+            'price' => $request->input('price'),
+            'stock' => $request->input('stock'),
+        ]);
+
+        $product->categories()->sync($request->input('categories'));
 
         return redirect()->route('products.index')->with('success', 'Product created successfully.');
     }
 
     public function edit(string $id)
     {
-        $product = Product::findOrFail($id);
+        $product = Product::with('categories:id')->findOrFail($id);
         $categories = Category::all();
         return Inertia::render('admin/products/edit', [
             'product' => $product,
@@ -65,9 +76,11 @@ class ProductController extends Controller
     public function update(Request $request, string $id) 
     {
         $request->validate([
-            'category_id' => 'required|exists:categories,id',
+            'categories' => 'required|array|min:1',
+            'categories.*' => 'exists:categories,id',
             'image' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
             'title' => 'required|string|max:255',
+            'badge' => 'required|in:new,sale,bestseller,limited',
             'description' => 'required|string',
             'price' => 'required|numeric|min:0',
             'stock' => 'required|integer|min:0',
@@ -76,27 +89,25 @@ class ProductController extends Controller
         $product = Product::findOrFail($id);
 
         if ($request->hasFile('image')) {
-            Storage::disk ('public')->delete($product->image);
+            Storage::disk('public')->delete($product->image);
 
             $image = $request->file('image');
             $imagePath = $image->store('products', 'public');
-            $product->update([
-                'category_id' => $request->input('category_id'),
-                'image' => $imagePath,
-                'title' => $request->input('title'),
-                'description' => $request->input('description'),
-                'price' => $request->input('price'),
-                'stock' => $request->input('stock'),
-            ]);
-        } else {
-            $product->update([
-                'category_id' => $request->input('category_id'),
-                'title' => $request->input('title'),
-                'description' => $request->input('description'),
-                'price' => $request->input('price'),
-                'stock' => $request->input('stock'),
-            ]);
+            $product->image = $imagePath;
         }
+
+        $firstCategoryId = collect($request->input('categories'))->map(fn($v) => (int)$v)->first();
+
+        $product->update([
+            'category_id' => $firstCategoryId, // legacy column compatibility
+            'title' => $request->input('title'),
+            'badge' => $request->input('badge'),
+            'description' => $request->input('description'),
+            'price' => $request->input('price'),
+            'stock' => $request->input('stock'),
+        ]);
+
+        $product->categories()->sync($request->input('categories'));
 
         return redirect()->route('products.index')->with('success', 'Product updated successfully.');
     }
@@ -112,7 +123,7 @@ class ProductController extends Controller
 
     public function userDashboard()
     {
-        $products = Product::with('category')->latest()->get();
+        $products = Product::with('categories')->latest()->get();
         $categories = Category::all();
         return Inertia::render('dashboard', [
             'products' => $products,
@@ -130,6 +141,4 @@ class ProductController extends Controller
             'categoryCount' => $categoryCount,
         ]);
     }
-    
-
 }

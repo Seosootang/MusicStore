@@ -7,10 +7,8 @@ import { ColumnDef } from '@tanstack/react-table';
 import { MoreHorizontal } from 'lucide-react';
 
 export type Product = {
-    id: string;
-    category: {
-        name: string;
-    };
+    id: string | number;
+    categories?: { id: number; name: string }[];
     title: string;
     description: string;
     price: number;
@@ -29,8 +27,13 @@ export const columns: ColumnDef<Product>[] = [
         },
     },
     {
-        accessorKey: 'category.name',
-        header: 'Category',
+        accessorKey: 'categories',
+        header: 'Categories',
+        cell: ({ row }) => {
+            const cats = row.original.categories || [];
+            if (!cats.length) return <span className="text-gray-400">-</span>;
+            return <span>{cats.map((c) => c.name).join(', ')}</span>;
+        },
     },
     {
         accessorKey: 'title',
