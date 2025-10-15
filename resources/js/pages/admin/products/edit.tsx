@@ -7,7 +7,7 @@ import { parseRupiah, rupiahFormatter } from '@/lib/utils';
 import { BreadcrumbItem } from '@/types';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Head, router, usePage } from '@inertiajs/react';
-import { useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { Product } from './column';
@@ -33,6 +33,9 @@ export default function EditProduct({ categories }: { categories: { id: number; 
 
     const [selectedCategories, setSelectedCategories] = useState<number[]>(() => (product.categories || []).map((c) => c.id));
 
+    // Keep the initial categories to detect changes later
+    const initialCategoriesRef = useRef<number[]>([...(product.categories || []).map((c) => c.id)]);
+
     const form = useForm<z.infer<typeof formSchema>>({
         resolver: zodResolver(formSchema),
         defaultValues: {
@@ -44,6 +47,18 @@ export default function EditProduct({ categories }: { categories: { id: number; 
             badge: (product as any).badge ?? 'new',
         },
     });
+
+    // Determine if categories changed vs initial
+    const categoriesChanged = useMemo(() => {
+        const a = [...initialCategoriesRef.current].sort((x, y) => x - y);
+        const b = [...selectedCategories].sort((x, y) => x - y);
+        if (a.length !== b.length) return true;
+        for (let i = 0; i < a.length; i++) if (a[i] !== b[i]) return true;
+        return false;
+    }, [selectedCategories]);
+
+    // Overall change detection: any form field dirty OR categories changed
+    const hasChanges = form.formState.isDirty || categoriesChanged;
 
     function onSubmit(values: z.infer<typeof formSchema>) {
         const formData = new FormData();
@@ -203,7 +218,9 @@ export default function EditProduct({ categories }: { categories: { id: number; 
                                     </FormItem>
                                 )}
                             />
-                            <Button type="submit">Update</Button>
+                            <Button type="submit" disabled={!hasChanges} title={!hasChanges ? 'Tidak ada perubahan' : undefined}>
+                                Update
+                            </Button>
                         </form>
                     </Form>
                 </div>
