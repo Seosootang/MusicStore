@@ -35,7 +35,7 @@ const formSchema = z.object({
     description: z.string().min(1, {
         message: 'Description is required.',
     }),
-    price: z.number().min(0),
+    price: z.number().min(0).max(10000000000, { message: 'Price cannot exceed Rp 10.000.000.000' }),
     stock: z.number().min(0),
 });
 
@@ -54,6 +54,15 @@ export default function CreateProduct({ categories }: { categories: { id: number
     });
 
     function onSubmit(values: z.infer<typeof formSchema>) {
+        // Check if image is null or not a File
+        if (!values.image || !(values.image instanceof File)) {
+            form.setError('image', {
+                type: 'manual',
+                message: 'Image is required.',
+            });
+            return;
+        }
+
         router.post(route('products.store'), values);
     }
 
@@ -74,12 +83,27 @@ export default function CreateProduct({ categories }: { categories: { id: number
                                         <FormControl>
                                             <Input
                                                 type="file"
-                                                accept="image/*"
+                                                accept="image/jpeg,image/png"
                                                 onChange={(e) => {
                                                     const file = e.target.files?.[0];
-                                                    if (file) {
-                                                        field.onChange(file);
+                                                    if (!file) {
+                                                        field.onChange(null);
+                                                        return;
                                                     }
+
+                                                    const allowedTypes = ['image/jpeg', 'image/png'];
+                                                    if (!allowedTypes.includes(file.type.toLowerCase())) {
+                                                        form.setError('image', {
+                                                            type: 'manual',
+                                                            message: 'Format gambar harus JPG, JPEG, atau PNG.',
+                                                        });
+                                                        field.onChange(null);
+                                                        e.target.value = '';
+                                                        return;
+                                                    }
+
+                                                    form.clearErrors('image');
+                                                    field.onChange(file);
                                                 }}
                                             />
                                         </FormControl>

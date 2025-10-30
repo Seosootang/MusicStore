@@ -22,7 +22,7 @@ const formSchema = z.object({
     image: z.any().optional(),
     title: z.string().min(1, { message: 'Title is required.' }),
     description: z.string().min(1, { message: 'Description is required.' }),
-    price: z.number().min(0),
+    price: z.number().min(0).max(10000000000, { message: 'Price cannot exceed Rp 10.000.000.000' }),
     stock: z.number().min(0),
     badge: z.enum(['new', 'sale', 'bestseller', 'limited']),
 });
@@ -106,12 +106,27 @@ export default function EditProduct({ categories }: { categories: { id: number; 
                                         <FormControl>
                                             <Input
                                                 type="file"
-                                                accept="image/*"
+                                                accept="image/jpeg,image/png"
                                                 onChange={(e) => {
                                                     const file = e.target.files?.[0];
-                                                    if (file) {
-                                                        field.onChange(file);
+                                                    if (!file) {
+                                                        field.onChange(null);
+                                                        return;
                                                     }
+
+                                                    const allowedTypes = ['image/jpeg', 'image/png'];
+                                                    if (!allowedTypes.includes(file.type.toLowerCase())) {
+                                                        form.setError('image', {
+                                                            type: 'manual',
+                                                            message: 'Format gambar harus JPG, JPEG, atau PNG.',
+                                                        });
+                                                        field.onChange(null);
+                                                        e.target.value = '';
+                                                        return;
+                                                    }
+
+                                                    form.clearErrors('image');
+                                                    field.onChange(file);
                                                 }}
                                             />
                                         </FormControl>

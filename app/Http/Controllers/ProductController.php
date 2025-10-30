@@ -39,8 +39,10 @@ class ProductController extends Controller
             'title' => 'required|string|max:255',
             'badge' => 'required|in:new,sale,bestseller,limited',
             'description' => 'required|string',
-            'price' => 'required|numeric|min:0',
+            'price' => 'required|numeric|min:0|max:10000000000',
             'stock' => 'required|integer|min:0',
+        ], [
+            'image.mimes' => 'Format gambar harus JPG, JPEG, atau PNG.',
         ]);
 
         $image = $request->file('image');
@@ -82,8 +84,10 @@ class ProductController extends Controller
             'title' => 'required|string|max:255',
             'badge' => 'required|in:new,sale,bestseller,limited',
             'description' => 'required|string',
-            'price' => 'required|numeric|min:0',
+            'price' => 'required|numeric|min:0|max:10000000000',
             'stock' => 'required|integer|min:0',
+        ], [
+            'image.mimes' => 'Format gambar harus JPG, JPEG, atau PNG.',
         ]);
 
         $product = Product::findOrFail($id);
